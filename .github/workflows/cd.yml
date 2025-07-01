@@ -24,10 +24,6 @@ jobs:
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mlops-sales:latest .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/mlops-sales:latest
 
-      # -----------------------------
-      # Kubernetes Deployment Section
-      # -----------------------------
-
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
         with:
@@ -36,10 +32,12 @@ jobs:
       - name: Set up Kubeconfig
         run: |
           mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config
+          echo "${{ secrets.KUBECONFIG_INLINE }}" | base64 --decode > $HOME/.kube/config
 
-      - name: Use minikube context
-        run: kubectl config use-context minikube
+      - name: Verify Context
+        run: |
+          kubectl config get-contexts
+          kubectl config use-context minikube
 
       - name: Deploy to Kubernetes
         run: |
