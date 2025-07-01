@@ -9,9 +9,6 @@ jobs:
   build-push-deploy:
     runs-on: ubuntu-latest
 
-    env:
-      KUBECONFIG: $HOME/.kube/custom-config  # 👈 Use custom kubeconfig path
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -28,7 +25,7 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/mlops-sales:latest
 
       # -----------------------------
-      # Deploy to Kubernetes
+      # Kubernetes Deployment Section
       # -----------------------------
 
       - name: Set up kubectl
@@ -39,20 +36,12 @@ jobs:
       - name: Set up Kubeconfig
         run: |
           mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/custom-config
-          kubectl config use-context minikube
+          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config
 
-      - name: Verify Kubernetes Context
-        run: |
-          kubectl config get-contexts
-          kubectl config current-context
+      - name: Use minikube context
+        run: kubectl config use-context minikube
 
       - name: Deploy to Kubernetes
         run: |
           kubectl apply -f kubernetes/deployment.yaml
           kubectl apply -f kubernetes/service.yaml
-
-      - name: Verify Deployment
-        run: |
-          kubectl get pods
-          kubectl get svc
