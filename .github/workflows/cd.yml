@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      KUBECONFIG: $HOME/.kube/custom-config  # ✅ Force kubectl to use your kubeconfig
+      KUBECONFIG: $HOME/.kube/custom-config  # 👈 Use custom kubeconfig path
 
     steps:
       - name: Checkout Repository
@@ -39,10 +39,12 @@ jobs:
       - name: Set up Kubeconfig
         run: |
           mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $KUBECONFIG
+          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/custom-config
 
       - name: Verify Kubernetes Context
-        run: kubectl config get-contexts
+        run: |
+          kubectl config get-contexts
+          kubectl config current-context
 
       - name: Deploy to Kubernetes
         run: |
