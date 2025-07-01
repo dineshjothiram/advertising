@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlops-sales-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlops-sales
+  template:
+    metadata:
+      labels:
+        app: mlops-sales
+    spec:
+      containers:
+      - name: mlops-sales-container
+        image: dineshjothiram/mlops-sales:latest
+        ports:
+        - containerPort: 8000

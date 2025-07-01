@@ -6,18 +6,38 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  build-push-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mlops-sales:latest .
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mlops-sales:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mlops-sales:latest
 
-      - name: Push Docker Image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/mlops-sales:latest
+      # -----------------------------
+      # Deploy to Kubernetes
+      # -----------------------------
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.29.0'
+
+      - name: Set up Kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f kubernetes/deployment.yaml
+          kubectl apply -f kubernetes/service.yaml
